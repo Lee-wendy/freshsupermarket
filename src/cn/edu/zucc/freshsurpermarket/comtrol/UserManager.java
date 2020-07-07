@@ -2,7 +2,11 @@ package cn.edu.zucc.freshsurpermarket.comtrol;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
+import cn.edu.zucc.freshsurpermarket.model.BeanFullDiscount;
+import cn.edu.zucc.freshsurpermarket.model.BeanShippingAddress;
 import cn.edu.zucc.freshsurpermarket.model.BeanUser;
 import cn.edu.zucc.freshsurpermarket.util.BaseException;
 import cn.edu.zucc.freshsurpermarket.util.BusinessException;
@@ -178,7 +182,49 @@ public class UserManager {
 		}
 	}
 //	用户加载管理
-	
+	public List<BeanUser> loaduserinf() throws BaseException {
+		// TODO Auto-generated method stub
+		Connection conn=null;
+		List<BeanUser> result=new ArrayList<BeanUser>();
+		try {
+			conn=DBUtil.getConnection();
+//			conn=DBUtil2.getInstance().getConnection();
+			conn.setAutoCommit(false);
+			String sql="select usercode,name,sex,password,phone,email,city,registerdate,isvip,vipdeadline from shippingadress where logoff=0 order by usercode";
+			java.sql.PreparedStatement pst=conn.prepareStatement(sql);
+			java.sql.ResultSet rs=pst.executeQuery();
+			while(rs.next()) {
+				BeanUser bu = new BeanUser();
+				bu.setUsercode(rs.getInt(1));
+				bu.setName(rs.getString(2));
+				bu.setSex(rs.getString(3));
+				bu.setPassword(rs.getString(4));
+				bu.setPhone(rs.getString(5));
+				bu.setEmail(rs.getString(6));
+				bu.setCity(rs.getString(7));
+				bu.setRegisterdate(rs.getTimestamp(8));
+				bu.setIsvip(rs.getInt(9));
+				bu.setVipdeadline(rs.getTimestamp(10));
+				result.add(bu);
+			}
+			pst.close();
+			conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DbException(e);
+		}
+		finally{
+			if(conn!=null)
+				try {
+					conn.rollback();
+					conn.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		}
+		return result;
+	}
 	
 	
 //	购买会员
@@ -217,6 +263,169 @@ public class UserManager {
 				}
 		}
 	}
+	
+//	添加配送地址
+	public void setshippingaddress(BeanShippingAddress bsa,int usercode) throws BaseException{
+		// TODO Auto-generated method stub
+		Connection conn=null;
+		try {
+			conn=DBUtil.getConnection();
+//			conn=DBUtil2.getInstance().getConnection();
+			conn.setAutoCommit(false);
+			String sql="select max(addresscode) from shippingadress";
+			java.sql.PreparedStatement pst=conn.prepareStatement(sql);
+			java.sql.ResultSet rs=pst.executeQuery();
+			int i = 1;
+			if(!rs.next()) {
+				i=1;
+			}
+			else {
+				i+=rs.getInt(1);
+			}
+			sql="insert into shippingadress(addresscode,usercode,province,city,area,address,contacts,phone) values(?,?,?,?,?,?,?,?)";
+			pst=conn.prepareStatement(sql);
+			pst.setInt(1,i);
+			pst.setInt(2, usercode);
+			pst.setString(3, bsa.getProvince());
+			pst.setString(4,bsa.getCity());
+			pst.setString(5, bsa.getArea());
+			pst.setString(6,bsa.getAddress());
+			pst.setString(7,bsa.getContacts());
+			pst.setString(8,bsa.getPhone());
+			pst.execute();
+			pst.close();
+			conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DbException(e);
+		}
+		finally{
+			if(conn!=null)
+				try {
+					conn.rollback();
+					conn.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		}
+	}
+
+//	删除配送地址
+	public void deleteshippingaddress(int shippingadress) throws BaseException {
+		// TODO Auto-generated method stub
+		Connection conn=null;
+		try {
+			conn=DBUtil.getConnection();
+//			conn=DBUtil2.getInstance().getConnection();
+			conn.setAutoCommit(false);
+			String sql="select addresscode from shippingadress where addresscode=?";
+			java.sql.PreparedStatement pst=conn.prepareStatement(sql);
+			pst.setInt(1,shippingadress);
+			java.sql.ResultSet rs=pst.executeQuery();
+			if(!rs.next()) throw new BusinessException("配送地址不存在");
+			rs.close();
+			pst.close();
+			pst=conn.prepareStatement("delete from shippingadress where addresscode=?");
+			pst.setInt(1,shippingadress);
+			pst.execute();
+			pst.close();
+			conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DbException(e);
+		}
+		finally{
+			if(conn!=null)
+				try {
+					conn.rollback();
+					conn.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		}
+	}
+	
+//	修改配送地址
+	public void modifyshippingaddress(BeanShippingAddress bsa,int usercode) throws BaseException {
+		// TODO Auto-generated method stub
+		Connection conn=null;
+		try {
+			conn=DBUtil.getConnection();
+//			conn=DBUtil2.getInstance().getConnection();
+			conn.setAutoCommit(false);
+			String sql="update shippingadress set province=?,city=?,area=?,address=?,contacts=?,phone=? where addresscode=?";
+			java.sql.PreparedStatement pst=conn.prepareStatement(sql);
+			pst.setString(1, bsa.getProvince());
+			pst.setString(2,bsa.getCity());
+			pst.setString(3, bsa.getArea());
+			pst.setString(4,bsa.getAddress());
+			pst.setString(5,bsa.getContacts());
+			pst.setString(6,bsa.getPhone());
+			pst.setInt(7, bsa.getAddresscode());
+			pst.execute();
+			pst.close();
+			conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DbException(e);
+		}
+		finally{
+			if(conn!=null)
+				try {
+					conn.rollback();
+					conn.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		}
+	}
+	
+//	加载配送地址
+	public List<BeanShippingAddress> loadshippingaddress() throws BaseException {
+		// TODO Auto-generated method stub
+		Connection conn=null;
+		List<BeanShippingAddress> result=new ArrayList<BeanShippingAddress>();
+		try {
+			conn=DBUtil.getConnection();
+//			conn=DBUtil2.getInstance().getConnection();
+			conn.setAutoCommit(false);
+			String sql="select addresscode,usercode,province,city,area,address,contacts,phone from shippingadress order by addresscode";
+			java.sql.PreparedStatement pst=conn.prepareStatement(sql);
+			java.sql.ResultSet rs=pst.executeQuery();
+			while(rs.next()) {
+				BeanShippingAddress bsa = new BeanShippingAddress();
+				bsa.setAddresscode(rs.getInt(1));
+				bsa.setUsercode(rs.getInt(2));
+				bsa.setProvince(rs.getString(3));
+				bsa.setCity(rs.getString(4));
+				bsa.setArea(rs.getString(5));
+				bsa.setAddress(rs.getString(6));
+				bsa.setContacts(rs.getString(7));
+				bsa.setPhone(rs.getString(8));
+				result.add(bsa);
+			}
+			pst.close();
+			conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DbException(e);
+		}
+		finally{
+			if(conn!=null)
+				try {
+					conn.rollback();
+					conn.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		}
+		return result;
+	}
+	
 	public static void main(String[] args){
 		UserManager user=new UserManager(); 
 		try {
