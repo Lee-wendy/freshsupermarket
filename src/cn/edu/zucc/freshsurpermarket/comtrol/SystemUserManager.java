@@ -20,13 +20,15 @@ import cn.edu.zucc.freshsurpermarket.util.DBUtil2;
 public class SystemUserManager {
 	public static BeanSystemUser currentUser=null;
 //	注册员工
-	public void reg(String staffname, String password1,String password2) throws BaseException {
+	public int reg(String staffname, String password1,String password2) throws BaseException {
 		// TODO Auto-generated method stub
 		if(password1==null || "".equals(password1) || password1.length()<6){
-			throw new BusinessException("密码必须大于等于6位");
+//			throw new BusinessException("密码必须大于等于6位");
+			return 1;
 		}
 		if(!(password1.equals(password2))){
-			throw new BusinessException("两次输入密码不一致");
+//			throw new BusinessException("两次输入密码不一致");
+			return 2;
 		}
 	
 		Connection conn=null;
@@ -52,6 +54,7 @@ public class SystemUserManager {
 			pst.execute();
 			pst.close();
 			conn.commit();
+			return 0;
 		} catch (SQLException e) {
 			e.printStackTrace();
 			throw new DbException(e);
@@ -69,20 +72,60 @@ public class SystemUserManager {
 	}
 	
 //	员工登录
-	public BeanSystemUser login(int staffcode, String password) throws BaseException {
+//	public BeanSystemUser login(String name, String password) throws BaseException {
+//		// TODO Auto-generated method stub
+//		Connection conn=null;
+//		try {
+//			conn=DBUtil.getConnection();
+////			conn=DBUtil2.getInstance().getConnection();
+//			conn.setAutoCommit(false);
+//			String sql="select staffcode,name,password,offjob from administratorsinf where name=?";
+//			java.sql.PreparedStatement pst=conn.prepareStatement(sql);
+//			pst.setString(1,name);
+//			java.sql.ResultSet rs=pst.executeQuery();
+//			if(!rs.next()) throw new BusinessException("员工账号不存在");
+//			if(!rs.getString(3).equals(password)) throw new BusinessException("密码错误");
+//			if(rs.getInt(4)==1) throw new BusinessException("员工已离职");
+//			BeanSystemUser su=new BeanSystemUser();
+//			su.setStaffcode(rs.getInt(1));
+//			su.setName(rs.getString(2));
+//			su.setPassword(rs.getString(3));
+//			su.setOffjob(rs.getInt(4));
+//			rs.close();
+//			pst.close();
+//			conn.commit();
+//			return su;
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//			throw new DbException(e);
+//		}
+//		finally{
+//			if(conn!=null)
+//				try {
+//					conn.rollback();
+//					conn.close();
+//				} catch (SQLException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//		}
+//	}
+	
+	
+	public int login(String name, String password) throws BaseException {
 		// TODO Auto-generated method stub
 		Connection conn=null;
 		try {
 			conn=DBUtil.getConnection();
 //			conn=DBUtil2.getInstance().getConnection();
 			conn.setAutoCommit(false);
-			String sql="select staffcode,name,password,offjob from administratorsinf where staffcode=?";
+			String sql="select staffcode,name,password,offjob from administratorsinf where name=? and offjob=0";
 			java.sql.PreparedStatement pst=conn.prepareStatement(sql);
-			pst.setInt(1,staffcode);
+			pst.setString(1,name);
 			java.sql.ResultSet rs=pst.executeQuery();
-			if(!rs.next()) throw new BusinessException("员工账号不存在");
-			if(!rs.getString(3).equals(password)) throw new BusinessException("密码错误");
-			if(rs.getInt(4)==1) throw new BusinessException("员工已离职");
+			if(!rs.next()) return 0;
+			if(!rs.getString(3).equals(password)) return 0;
+			if(rs.getInt(4)==1) return 0;
 			BeanSystemUser su=new BeanSystemUser();
 			su.setStaffcode(rs.getInt(1));
 			su.setName(rs.getString(2));
@@ -91,7 +134,7 @@ public class SystemUserManager {
 			rs.close();
 			pst.close();
 			conn.commit();
-			return su;
+			return 1;
 		} catch (SQLException e) {
 			e.printStackTrace();
 			throw new DbException(e);
@@ -107,7 +150,6 @@ public class SystemUserManager {
 				}
 		}
 	}
-	
 //	员工修改密码
 	public void changePwd(BeanSystemUser SystemUser, String oldPwd, String newPwd, String newPwd2) throws BaseException {
 		// TODO Auto-generated method stub

@@ -104,15 +104,16 @@ public class GoodsManager {
 	
 	
 //	商家商品加载管理
-	public List<BeanGoods> loadGoodsByStaff(int categorycode) throws DbException {
+	public List<BeanGoods> loadGoodsByStaff(int categorycode,int num) throws DbException {
 		List<BeanGoods> result=new ArrayList<BeanGoods>();
 		Connection conn=null;
 		try {
 			conn=DBUtil.getConnection();
 			conn.setAutoCommit(false);
-			String sql="select goodsname,price,vipprice,standards,ps from goodsinf where categorycode = ?";
+			String sql="select goodsname,price,vipprice,standards,ps from goodsinf where categorycode = ? limit ?,5";
 			java.sql.PreparedStatement pst=conn.prepareStatement(sql);
 			pst.setInt(1, categorycode);
+			pst.setInt(2, num);
 			java.sql.ResultSet rs=pst.executeQuery();
 			while(rs.next()){
 				BeanGoods bg=new BeanGoods();
@@ -142,15 +143,16 @@ public class GoodsManager {
 	}
 	
 //	用户商品加载购买
-	public List<BeanGoods> loadGoodsByUser(int categorycode) throws DbException {
+	public List<BeanGoods> loadGoodsByUser(int categorycode,int num) throws DbException {
 		List<BeanGoods> result=new ArrayList<BeanGoods>();
 		Connection conn=null;
 		try {
 			conn=DBUtil.getConnection();
 			conn.setAutoCommit(false);
-			String sql="select goodsname,price,vipprice,standards,ps from goodsinf where categorycode = ? and quantity > 0";
+			String sql="select goodsname,price,vipprice,standards,ps from goodsinf where categorycode = ? and quantity > 0  limit ?,5";
 			java.sql.PreparedStatement pst=conn.prepareStatement(sql);
 			pst.setInt(1, categorycode);
+			pst.setInt(2, num);
 			java.sql.ResultSet rs=pst.executeQuery();
 			while(rs.next()){
 				BeanGoods bg=new BeanGoods();
@@ -178,5 +180,151 @@ public class GoodsManager {
 		}
 		return result;
 	}
+//	商品类别加载管理
+	public List<BeanGoods> loadCategoryGoods(int categorycode,int num) throws DbException {
+		List<BeanGoods> result=new ArrayList<BeanGoods>();
+		Connection conn=null;
+		try {
+			conn=DBUtil.getConnection();
+			conn.setAutoCommit(false);
+			String sql="select goodscode,goodsname,price,vipprice,quantity,standards,ps from goodsinf where categorycode = ? limit ?,5";
+			java.sql.PreparedStatement pst=conn.prepareStatement(sql);
+			pst.setInt(1, categorycode);
+			pst.setInt(2, num);
+			java.sql.ResultSet rs=pst.executeQuery();
+			while(rs.next()){
+				BeanGoods bg=new BeanGoods();
+				bg.setCategorycode(categorycode);
+				bg.setGoodscode(rs.getInt(1));
+				bg.setGoodsname(rs.getString(2));
+				bg.setPrice(rs.getDouble(3));
+				bg.setVipprice(rs.getDouble(4));
+				bg.setQuantity(rs.getInt(5));
+				bg.setStandards(rs.getString(6));
+				bg.setPs(rs.getString(7));
+				result.add(bg);
+			}
+			conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DbException(e);
+		}
+		finally{
+			if(conn!=null)
+				try {
+					conn.rollback();
+					conn.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		}
+		return result;
+	}
 	
+//	商品类别总数
+	public int CategoryGoodsnum(int categorycode) throws DbException {
+		int result=0;
+		Connection conn=null;
+		try {
+			conn=DBUtil.getConnection();
+			conn.setAutoCommit(false);
+			String sql="select goodscode,goodsname,price,vipprice,quantity,standards,ps from goodsinf where categorycode = ? ";
+			java.sql.PreparedStatement pst=conn.prepareStatement(sql);
+			pst.setInt(1, categorycode);
+			java.sql.ResultSet rs=pst.executeQuery();
+			while(rs.next()){
+				result=result+1;
+			}
+			conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DbException(e);
+		}
+		finally{
+			if(conn!=null)
+				try {
+					conn.rollback();
+					conn.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		}
+		return result;
+	}
+//	商品类别模糊查询
+	public List<BeanGoods> SearchCategoryGoods(int categorycode,String likecategorygoods,int num) throws DbException {
+		List<BeanGoods> result=new ArrayList<BeanGoods>();
+		Connection conn=null;
+		try {
+			conn=DBUtil.getConnection();
+			conn.setAutoCommit(false);
+			String sql="select categorycode,goodsname,price,vipprice,quantity,standards,ps from goodsinf where categorycode = ? and goodsname =?";
+			java.sql.PreparedStatement pst=conn.prepareStatement(sql);
+			pst.setInt(1, categorycode);
+			pst.setString(2, likecategorygoods);
+			pst.setInt(3, num);
+			java.sql.ResultSet rs=pst.executeQuery();
+			while(rs.next()){
+				BeanGoods bg=new BeanGoods();
+				bg.setCategorycode(categorycode);
+				bg.setGoodsname(rs.getString(1));
+				bg.setPrice(rs.getDouble(2));
+				bg.setVipprice(rs.getDouble(3));
+				bg.setStandards(rs.getString(4));
+				bg.setQuantity(rs.getInt(5));
+				bg.setPs(rs.getString(6));
+				result.add(bg);
+			}
+			conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DbException(e);
+		}
+		finally{
+			if(conn!=null)
+				try {
+					conn.rollback();
+					conn.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		}
+		return result;
+	}
+	
+//	商品类别模糊查询总数
+	public int SearchCategoryGoodsnum(int categorycode,String likecategorygoods) throws DbException {
+		int result=0;
+		Connection conn=null;
+		try {
+			conn=DBUtil.getConnection();
+			conn.setAutoCommit(false);
+			String sql="select categorycode,goodsname,price,vipprice,quantity,standards,ps from goodsinf where categorycode = ? and goodsname =?";
+			java.sql.PreparedStatement pst=conn.prepareStatement(sql);
+			pst.setInt(1, categorycode);
+			pst.setString(2, likecategorygoods);
+			java.sql.ResultSet rs=pst.executeQuery();
+			while(rs.next()){
+				result=result+1;
+			}
+			conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DbException(e);
+		}
+		finally{
+			if(conn!=null)
+				try {
+					conn.rollback();
+					conn.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		}
+		return result;
+	}
 }

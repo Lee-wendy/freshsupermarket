@@ -182,7 +182,7 @@ public class UserManager {
 		}
 	}
 //	用户加载管理
-	public List<BeanUser> loaduserinf() throws BaseException {
+	public List<BeanUser> loaduserinf(int num) throws BaseException {
 		// TODO Auto-generated method stub
 		Connection conn=null;
 		List<BeanUser> result=new ArrayList<BeanUser>();
@@ -190,8 +190,9 @@ public class UserManager {
 			conn=DBUtil.getConnection();
 //			conn=DBUtil2.getInstance().getConnection();
 			conn.setAutoCommit(false);
-			String sql="select usercode,name,sex,password,phone,email,city,registerdate,isvip,vipdeadline from shippingadress where logoff=0 order by usercode";
+			String sql="select usercode,name,sex,password,phone,email,city,registerdate,isvip,vipdeadline from userinf where logoff=0 order by usercode limit ?,5";
 			java.sql.PreparedStatement pst=conn.prepareStatement(sql);
+			pst.setInt(1, num);
 			java.sql.ResultSet rs=pst.executeQuery();
 			while(rs.next()) {
 				BeanUser bu = new BeanUser();
@@ -225,7 +226,41 @@ public class UserManager {
 		}
 		return result;
 	}
-	
+//	总用户数
+	public int userinfnum() throws BaseException {
+		// TODO Auto-generated method stub
+		Connection conn=null;
+		int allnum=0;
+		List<BeanUser> result=new ArrayList<BeanUser>();
+		try {
+			conn=DBUtil.getConnection();
+//			conn=DBUtil2.getInstance().getConnection();
+			conn.setAutoCommit(false);
+			String sql="select * from userinf where logoff=0";
+			java.sql.PreparedStatement pst=conn.prepareStatement(sql);
+			java.sql.ResultSet rs=pst.executeQuery();
+			while(rs.next()) {
+				allnum=allnum+1;
+			}
+			pst.close();
+			conn.commit();
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DbException(e);
+		}
+		finally{
+			if(conn!=null)
+				try {
+					conn.rollback();
+					conn.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		}
+		return allnum;
+	}
 	
 //	购买会员
 	public void setvip(BeanUser User,int month) throws BaseException {
